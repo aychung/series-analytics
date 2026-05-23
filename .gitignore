@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Test and tool caches
+coverage/
+.cache/
+.turbo/
+.vite/
+
+# Generated project data
+data/
+reports/
+
+# Editor metadata
+.obsidian/

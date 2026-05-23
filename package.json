@@ -1,0 +1,25 @@
+{
+  "name": "series-analytics",
+  "version": "1.0.0",
+  "description": "Naver Series romance/rofan tag analytics crawler and report generator.",
+  "type": "module",
+  "main": "dist/cli.js",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "crawl:daily": "tsx src/cli.ts crawl:daily",
+    "crawl:weekly": "tsx src/cli.ts crawl:weekly",
+    "report:daily": "tsx src/cli.ts report:daily",
+    "report:weekly": "tsx src/cli.ts report:weekly"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.33.4",
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
