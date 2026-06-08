@@ -36,7 +36,7 @@ func main() {
 	}
 
 	println("> Running DB migration")
-	if err = store.RunMigration(dbStore.DB, config.DBPath); err != nil {
+	if err = store.RunMigration(dbStore.DB, config.MigrationPath); err != nil {
 		dbStore.Close()
 		log.Fatal(err)
 	}
@@ -57,4 +57,3 @@ func main() {
 
 	log.Printf("> Job done in %s", time.Since(start))
 }
-

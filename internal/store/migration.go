@@ -9,7 +9,7 @@ import (
 )
 
 func RunMigration(database *sql.DB, migrationsDir string) error {
-	if _, err :=  database.Exec(`
+	if _, err := database.Exec(`
 		CREATE TABLE IF NOT EXISTS schema_migrations (
 		version TEXT PRIMARY KEY,
 		applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -21,6 +21,9 @@ func RunMigration(database *sql.DB, migrationsDir string) error {
 	files, err := filepath.Glob(filepath.Join(migrationsDir, "*.sql"))
 	if err != nil {
 		return fmt.Errorf("find migration files: %w", err)
+	}
+	if len(files) == 0 {
+		return fmt.Errorf("no migration files found in %s", migrationsDir)
 	}
 
 	sort.Strings(files)
@@ -47,6 +50,7 @@ func RunMigration(database *sql.DB, migrationsDir string) error {
 			return fmt.Errorf("begin migration %s: %w", version, err)
 		}
 		if _, err := tx.Exec(string(sqlBytes)); err != nil {
+			_ = tx.Rollback()
 			return fmt.Errorf("execute migration %s: %w", version, err)
 		}
 		if _, err := tx.Exec("INSERT INTO schema_migrations (version) VALUES (?)", version); err != nil {
@@ -55,7 +59,7 @@ func RunMigration(database *sql.DB, migrationsDir string) error {
 		}
 
 		if err := tx.Commit(); err != nil {
-			return fmt. Errorf("commit migration %s: %w", version, err)
+			return fmt.Errorf("commit migration %s: %w", version, err)
 		}
 	}
 	return nil
@@ -75,4 +79,3 @@ func migrationApplied(database *sql.DB, version string) (bool, error) {
 
 	return count > 0, nil
 }
-

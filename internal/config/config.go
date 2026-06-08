@@ -2,25 +2,27 @@
 package config
 
 import (
-	"os"
 	"errors"
+	"os"
 )
 
 type Config struct {
-	DBPath string
+	DBPath        string
+	MigrationPath string
 }
 
 func Load() (Config, error) {
 	dbPath := os.Getenv("DATABASE_PATH")
-	var err error = nil
+	migrationPath := os.Getenv("DB_MIGRATION_PATH")
 	config := Config{
-		DBPath: dbPath,
+		DBPath:        dbPath,
+		MigrationPath: migrationPath,
 	}
 
-	if dbPath == "" {
-		err = errors.New("DATABASE_PATH is required")
+	var err error = nil
+	if dbPath == "" || migrationPath == "" {
+		err = errors.New("DATABASE_PATH and DB_MIGRATION_PATH is required")
 	}
 
 	return config, err
 }
-
