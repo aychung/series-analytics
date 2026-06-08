@@ -11,6 +11,8 @@ import (
 	"series-analytics/internal/app"
 	"series-analytics/internal/config"
 	"series-analytics/internal/store"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -19,6 +21,9 @@ func main() {
 	defer stop()
 
 	println("> Loading configs")
+	if err := godotenv.Load(); err != nil {
+		log.Fatal(err)
+	}
 	config, err := config.Load()
 	if err != nil {
 		log.Fatal(err)
@@ -45,7 +50,7 @@ func main() {
 
 	println("> Running app")
 	start := time.Now()
-	err = a.Run(ctx)
+	err = a.RecordNovelStat(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}

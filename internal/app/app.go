@@ -3,27 +3,36 @@ package app
 
 import (
 	"context"
+	"fmt"
 
+	"series-analytics/internal/crawler"
 	"series-analytics/internal/store"
-	// "series-analytics/internal/crawler"
 )
 
 type App struct {
 	db	*store.DB
-//	crawler *crawler.Crawler
+	crawler *crawler.Crawler
 }
 
 func New(dbStore *store.DB) (*App, error) {
+	c, err := crawler.New();
+	if err != nil {
+		return nil, err
+	}
 	return &App{
 		db:	dbStore,
-//		crawler: crawler.New(dbStore),
+		crawler: c,
 	}, nil
 }
 
-func (a *App) Run(ctx context.Context) error {
-	println("Run")
+func (a *App) RecordNovelStat(ctx context.Context) error {
+	// 14143381
+	_, err := a.crawler.QueryNovelStat(ctx, "14207846")
+	if err != nil {
+		return err
+	}
+
 	return nil;
-//	return a.crawler.Run(ctx)
 }
 
 func (a *App) Close() error {
