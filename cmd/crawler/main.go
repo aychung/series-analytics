@@ -16,11 +16,11 @@ import (
 )
 
 func main() {
-	println("> Starting new context")
+	// println("> Starting new context")
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	println("> Loading configs")
+	// println("> Loading configs")
 	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
 	}
@@ -29,31 +29,31 @@ func main() {
 		log.Fatal(err)
 	}
 
-	println("> Opening DB")
+	// println("> Opening DB")
 	dbStore, err := store.Open(config.DBPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	println("> Running DB migration")
+	// println("> Running DB migration")
 	if err = store.RunMigration(dbStore.DB, config.MigrationPath); err != nil {
 		dbStore.Close()
 		log.Fatal(err)
 	}
 	defer dbStore.Close()
 
-	println("> Starting new app")
+	// println("> Starting new app")
 	a, err := app.New(dbStore)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	println("> Running app")
+	// println("> Running app")
 	start := time.Now()
 	err = a.RecordNovelStat(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("> Job done in %s", time.Since(start))
+	log.Printf("> Crawler job done in %s", time.Since(start))
 }

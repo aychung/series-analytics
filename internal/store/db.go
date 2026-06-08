@@ -102,6 +102,6 @@ func Open(dbPath string) (*Store, error) {
 }
 
 func (s *Store) Close() error {
-	println("DB CLOSE")
+	// println("DB CLOSE")
 	return s.DB.Close()
 }

@@ -3,7 +3,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 
 	"series-analytics/internal/crawler"
 	"series-analytics/internal/store"
@@ -32,24 +31,24 @@ func (a *App) RecordNovelStat(ctx context.Context) error {
 		return err
 	}
 
-	println("> a.store.StoreNovelDetail")
+	// println("> a.store.StoreNovelDetail")
 	ID, err := a.store.StoreNovelDetail(ctx, detail)
 	if err != nil {
 		return err
 	}
-	println("> a.store.StoreNovelStat")
+	// println("> a.store.StoreNovelStat")
 	err = a.store.StoreNovelStat(ctx, ID, stat)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("title: %s\nauthor: %s\npublisher: %s\ncategory: %s\n", detail.Title, detail.Author, detail.Publisher, detail.Category)
-	fmt.Printf("rating: %f\ndownload_count: %s\ncomment_count: %s\n", stat.Rating, stat.DownloadCount, stat.CommentCount)
+	// fmt.Printf("title: %s\nauthor: %s\npublisher: %s\ncategory: %s\n", detail.Title, detail.Author, detail.Publisher, detail.Category)
+	// fmt.Printf("rating: %f\ndownload_count: %s\ncomment_count: %s\n", stat.Rating, stat.DownloadCount, stat.CommentCount)
 
 	return nil
 }
 
 func (a *App) Close() error {
-	println("Close")
+	// println("Close")
 	return a.store.Close()
 }
