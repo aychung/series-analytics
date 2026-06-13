@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"os"
 	"os/signal"
@@ -16,6 +17,13 @@ import (
 )
 
 func main() {
+	mode := flag.String("mode", "", 
+		"'hourlyStat': for hourly stat recording\n" +
+		"'daily100': for daily top100 tag trends recording")
+	isDryRun := flag.Bool("dryrun", false, "set dry-run to true to run without actually recording into DB")
+
+	flag.Parse()
+
 	// println("> Starting new context")
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -50,10 +58,29 @@ func main() {
 
 	// println("> Running app")
 	start := time.Now()
-	err = a.RecordNovelStat(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
+	switch *mode {
+	case "hourlyStat":
+		// println("> Running hourly stat")
+		novelPrdNo := []string{
+			"14253468",
+			"14143381",
+		}
+		errs := []error{}
+		for _, prdNo := range novelPrdNo {
+			runErr := a.RecordNovelStat(ctx, prdNo, *isDryRun)
+			if runErr != nil {
+				errs = append(errs, runErr)
+			}
+		}
 
-	log.Printf("> Crawler job done in %s", time.Since(start))
+		if len(errs) == len(novelPrdNo) {
+			log.Fatal(errs)
+		} else if len(errs) > 0 {
+			log.Print(errs)
+		}
+
+	case "daily100":
+		println("> Running daily 100 tags")
+	}
+	log.Printf("> Crawler job %s done in %s", *mode, time.Since(start))
 }
