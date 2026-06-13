@@ -40,3 +40,4 @@ CREATE TABLE IF NOT EXISTS novel_stats (
 );
 
 CREATE INDEX IF NOT EXISTS idx_novel_stats_novel_id ON novel_stats(novel_id);
+

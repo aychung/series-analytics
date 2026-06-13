@@ -54,7 +54,7 @@ func (f *Fetcher) Fetch(ctx context.Context, rawURL string) (*FetcherResult, err
 	contentType := resp.Header.Get("Content-Type")
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("bad status code: %d", resp.StatusCode)
+		return nil, fmt.Errorf("bad status code: %d, url: %s", resp.StatusCode, rawURL)
 	}
 
 	if !isHTMLContentType(contentType) {

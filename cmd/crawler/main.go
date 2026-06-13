@@ -11,6 +11,7 @@ import (
 
 	"series-analytics/internal/app"
 	"series-analytics/internal/config"
+	"series-analytics/internal/model"
 	"series-analytics/internal/store"
 
 	"github.com/joho/godotenv"
@@ -18,17 +19,16 @@ import (
 
 func main() {
 	mode := flag.String("mode", "",
-		"'hourlyStat': for hourly stat recording\n"+
-			"'daily100': for daily top100 tag trends recording")
+		"'stat': for hourly stat recording\n"+
+			"'top100': for top100 tag trends recording")
 	isDryRun := flag.Bool("dryrun", false, "set dry-run to true to run without actually recording into DB")
+	rankType := flag.String("rankType", "", "hourly, daily, weekly, monthly")
 
 	flag.Parse()
 
-	// println("> Starting new context")
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	// println("> Loading configs")
 	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
 	}
@@ -37,30 +37,27 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// println("> Opening DB")
 	dbStore, err := store.Open(config.DBPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// println("> Running DB migration")
 	if err = store.RunMigration(dbStore.DB, config.MigrationPath); err != nil {
 		dbStore.Close()
 		log.Fatal(err)
 	}
 	defer dbStore.Close()
 
-	// println("> Starting new app")
 	a, err := app.New(dbStore)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer a.Close()
 
-	// println("> Running app")
+	log.Printf("> Running %s - %s", *mode, *rankType)
 	start := time.Now()
 	switch *mode {
-	case "hourlyStat":
-		// println("> Running hourly stat")
+	case "stat":
 		novelPrdNo := []string{
 			"14253468",
 			"14143381",
@@ -79,12 +76,33 @@ func main() {
 			log.Print(errs)
 		}
 
-	case "daily100":
-		println("> Running daily 100 tags")
-		err := a.RecordTop100Tags(ctx, *isDryRun)
+	case "top100":
+		isValidRankType := false
+		var rType model.RankingType
+		switch *rankType {
+		case "hourly":
+			isValidRankType = true
+			rType = model.HourlyRank
+		case "daily":
+			isValidRankType = true
+			rType = model.DailyRank
+		case "weekly":
+			isValidRankType = true
+			rType = model.WeeklyRank
+		case "monthly":
+			isValidRankType = true
+			rType = model.MonthlyRank
+		}
+		if !isValidRankType {
+			log.Fatal("> valid rankType option is required for running top100 mode")
+		}
+		err := a.RecordTop100Tags(ctx, rType, *isDryRun)
 		if err != nil {
 			log.Fatal(err)
 		}
+
+	default:
+		log.Printf("> Invalid mode provided. ('stat' or 'top100')");
 	}
-	log.Printf("> Crawler job %s done in %s", *mode, time.Since(start))
+	log.Printf("> Job %s - %s done in %s", *mode, *rankType, time.Since(start))
 }

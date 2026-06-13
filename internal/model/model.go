@@ -20,3 +20,34 @@ type Novel struct {
 	Tags   []string
 	Stat   NovelStat
 }
+
+type NovelRank struct {
+	NovelID int
+	Rank int
+	PrdNo string
+}
+
+type RankingType string
+
+const (
+	HourlyRank RankingType = "HourlyRank"
+	DailyRank   RankingType = "DailyRank"
+	WeeklyRank  RankingType = "WeeklyRank"
+	MonthlyRank RankingType = "MonthlyRank"
+)
+
+func (r RankingType) ToQuery() string {
+	var q string
+	switch r {
+	case HourlyRank:
+		q = "HOURLY"
+	case DailyRank:
+		q = "DAILY"
+	case WeeklyRank:
+		q = "WEEKLY"
+	case MonthlyRank:
+		q = "MONTHLY"
+	} 
+	return q
+}
+
