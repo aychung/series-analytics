@@ -4,6 +4,7 @@ package crawler
 import (
 	"bytes"
 	"context"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -22,26 +23,38 @@ func New() (*Crawler, error) {
 	}, nil
 }
 
-func (c *Crawler) QueryNovelInfo(ctx context.Context, prdNo string) (*model.NovelDetail, *model.NovelStat, error) {
+func (c *Crawler) QueryTop100(ctx context.Context) ([]model.NovelDetail, error) {
+	url := "https://series.naver.com/novel/top100List.series?rankingTypeCode=DAILY&categoryCode=201&page=1"
+	prdPageFetchResult, err := c.fetcher.Fetch(ctx, url)
+	if err != nil {
+		return nil, err
+	}
+
+	parseTop100PageInfo(prdPageFetchResult.Body)
+
+	return nil, nil
+}
+
+func (c *Crawler) QueryNovelInfo(ctx context.Context, prdNo string) (detail model.NovelDetail, stat model.NovelStat, tags []string, err error) {
 	url := "https://series.naver.com/novel/detail.series?productNo=" + prdNo
 	prdPageFetchResult, err := c.fetcher.Fetch(ctx, url)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 
-	detail, stat, err := parsePrdPageInfo(prdPageFetchResult.Body)
+	detail, stat, tags, err = parsePrdPageInfo(prdPageFetchResult.Body)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 	detail.PrdNo = prdNo
 
-	return detail, stat, nil
+	return
 }
 
-func parsePrdPageInfo(htmlBody []byte) (*model.NovelDetail, *model.NovelStat, error) {
+func parsePrdPageInfo(htmlBody []byte) (detail model.NovelDetail, stat model.NovelStat, tags []string, err error) {
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(htmlBody))
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 
 	title := cleanText(doc.Find("div.end_head > h2").First().Text())
@@ -52,25 +65,54 @@ func parsePrdPageInfo(htmlBody []byte) (*model.NovelDetail, *model.NovelStat, er
 	commentCount := cleanText(doc.Find("span#commentCount").First().Text())
 	downloadCount := cleanText(doc.Find("a.btn_download").First().Text())
 	ratingStr := cleanText(doc.Find("div.score_area > em").First().Text())
+	metaDescription, exists := doc.Find("meta[name='description']").Attr("content")
+
+	if exists {
+		tags = parseTags(metaDescription)
+	}
 
 	rating, err := strconv.ParseFloat(ratingStr, 64)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 
-	return &model.NovelDetail{
+	return model.NovelDetail{
 			PrdNo:     "",
 			Title:     title,
 			Author:    author,
 			Publisher: publisher,
 			Category:  category,
-		}, &model.NovelStat{
+		}, model.NovelStat{
 			CommentCount:  commentCount,
 			DownloadCount: downloadCount,
 			Rating:        rating,
-		}, nil
+		}, tags, nil
+}
+
+func parseTop100PageInfo(htmlBody []byte) error {
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(htmlBody))
+	if err != nil {
+		return err
+	}
+
+	doc.Find("")
+	return nil
 }
 
 func cleanText(s string) string {
 	return strings.Join(strings.Fields(strings.TrimSpace(s)), " ")
+}
+
+func parseTags(s string) []string {
+	re := regexp.MustCompile(`#([^\s,]+)`)
+
+	matches := re.FindAllStringSubmatch(s, -1)
+
+	var tagList []string
+	for _, match := range matches {
+		if len(match) > 1 {
+			tagList = append(tagList, match[1])
+		}
+	}
+	return tagList
 }

@@ -17,9 +17,9 @@ import (
 )
 
 func main() {
-	mode := flag.String("mode", "", 
-		"'hourlyStat': for hourly stat recording\n" +
-		"'daily100': for daily top100 tag trends recording")
+	mode := flag.String("mode", "",
+		"'hourlyStat': for hourly stat recording\n"+
+			"'daily100': for daily top100 tag trends recording")
 	isDryRun := flag.Bool("dryrun", false, "set dry-run to true to run without actually recording into DB")
 
 	flag.Parse()
@@ -81,6 +81,10 @@ func main() {
 
 	case "daily100":
 		println("> Running daily 100 tags")
+		err := a.RecordTop100Tags(ctx, *isDryRun)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 	log.Printf("> Crawler job %s done in %s", *mode, time.Since(start))
 }
